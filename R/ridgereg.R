@@ -1,6 +1,4 @@
 #' Perform ridge regression using ordinary least squares as well as QR decomposition
-#'
-#' @import stats
 #' 
 #' @param formula an object, that is symbolic description of the model to be fitted.
 #' @param data a data frame.
@@ -49,4 +47,50 @@ ridgereg = function(formula,data,lambda = 0){
   class(result) = "ridgereg"
   return(result)
   
+}
+
+#' This contains the print methods for ridgereg function.
+#' 
+#' 
+#' @param x An object of ridgereg class
+#' @param ... Further arguments passed to or from other methods
+#' @export
+
+
+print.ridgereg = function(x,...){
+  if (!inherits(x, "ridgereg"))
+    stop("This is not a \"ridgereg\" object.")
+  if(length(x$coef)){
+    cat("Call:\n ")
+    print.default(as.vector(x$call))
+    cat("\n Coefficent is \n")
+    print.default(t(x$coef))
+  } else {cat("Coefficient not available \n")}
+}
+
+#' This contains the fitted values of ridgereg function.
+#' 
+#' @param p An object of ridgereg class
+#' @param ... Further arguments passed to or from other methods
+#' @export
+
+pred.ridgereg = function(p,...){
+  if (!inherits(p, "ridgereg")){
+    stop("This is not a \"ridgereg\" object.")}
+  return(as.vector(p$fitted_values))
+}
+
+#' This contains the regression coefficents of ridgereg function.
+#' 
+#' 
+#' @param object An object of ridgereg class
+#' @param ... Further arguments passed to or from other methods
+#' @export
+
+coef.ridgereg = function(object, ...){
+  if (!inherits(object, "ridgereg"))
+    stop("This is not a \"ridgereg\" object.")
+  if(length(object$coef)){
+    print.default(t(object$coef))
+  } else {cat("Coefficient not available \n")}
 }

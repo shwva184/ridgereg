@@ -1,0 +1,103 @@
+---
+title: "ridgereg"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ridgereg}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ridgereg)
+library(mlbench)
+library(caret) 
+library(MASS)
+library(leaps)
+data("BostonHousing")
+```
+
+### Introduction
+
+The vignette called ridgereg is created, where a simple prediction problem using our own ridgereg() function is showed.
+
+### 1. Divide the BostonHousing data into a test and training dataset 
+ 
+The BostonHousing data from mlbench package is divided into testing and training data sets. 80% of randomly selected data goes to training data set, and remaining 20% are used in the testing data set. The response variable crim(per capita crime rate by town) is analyzed.
+
+```{r}
+set.seed(3456)
+inTrain = createDataPartition(y = Boston$crim, p = 0.8, list = FALSE)
+
+training = Boston[inTrain, ]
+test = Boston[-inTrain, ]
+
+#For the 10-fold cross-validation
+train_ctrl = caret::trainControl(method = "repeatedcv",
+  number = 10, # k=10
+  repeats = 10) # repeat 10 times
+```
+
+### 2. Training the data using lm and leapforward
+
+```{r}
+lm = train(crim ~ ., data = training, method = "lm", 
+                trControl = train_ctrl)
+print(lm)
+```
+
+```{r}
+lf = train(crim ~ ., data = training, method = "leapForward", 
+                trControl = train_ctrl)
+print(lf)
+```
+
+### 3. Evaluate the performance
+
+```{r}
+resamps = resamples(list(linreg = lm, linregfwd = lf))
+summary(resamps)
+```
+
+By looking at the metrics RMSE, Rsquared and MAE, we can see that the linear regression performs better than the linear regression with forward selection.
+
+
+### 4. Fit a ridge regression model
+
+```{r}
+Ridgereg = list(
+  type = "Regression",
+  library = "bonusLabRidge",
+  loop = NULL, 
+  prob = NULL,
+  
+  parameters = data.frame(parameter = "lambda", class = "numeric", label = "lambda"),
+  grid = function(x, y, len = NULL, search = "grid") {
+        data.frame(lambda = c(0, 0.25, 0.50, 0.75, 1.0, 1.25, 1.50, 1.75, 2))
+  }, 
+  
+  fit = function(x, y, wts, param, lev, last, classProbs, ...){
+    df = as.data.frame(x)
+    df$y = y
+    ridgereg(y ~ ., data = df, lambda = param$lambda)
+    },
+  
+  predict = function(modelFit, newdata, submodels = NULL) {
+    newdata <- as.data.frame(newdata)
+    predict(modelFit, newdata)                
+    }
+)
+```
+
+
+
+
+
+
+

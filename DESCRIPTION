@@ -10,7 +10,14 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
-Imports: stats
+Imports: stats,
+    dplyr,
+    ggplot2,
+    nycflights13,
+    caret,
+    leaps,
+    mlbench,
+    MASS
 Suggests: 
     testthat,
     knitr,
