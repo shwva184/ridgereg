@@ -20,11 +20,11 @@ knitr::opts_chunk$set(
 ```{r, eval=FALSE}
 devtools::install_github("shwva184/ridgereg")
 ```{r setup}
-library(ridgereg)
-library(mlbench)
-library(caret) 
-library(MASS)
-library(leaps)
+require(ridgereg)
+require(mlbench)
+require(caret) 
+require(MASS)
+require(leaps)
 data("BostonHousing")
 ```
 
