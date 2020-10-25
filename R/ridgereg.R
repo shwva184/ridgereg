@@ -32,9 +32,9 @@ ridgereg = function(formula,data,lambda = 0){
   #y_hat = x %*% beta_r + bo
   
   #computation using QR
-  p = ncol(x)
-  y_qr = rbind(as.matrix(data[all.vars(formula)[1]]),matrix(0,nrow = p,ncol = 1))
-  x_qr = rbind(x,diag(sqrt(lambda),nrow=ncol(x),ncol=ncol(x)))
+  l = ncol(x)
+  y_qr = rbind(as.matrix(data[all.vars(formula)[1]]),matrix(0,nrow = l,ncol = 1))
+  x_qr = rbind(x,diag(sqrt(lambda),nrow=l,ncol=l))
   qr = qr(x_qr)
   R = qr.R(qr)
   Q = qr.Q(qr)
