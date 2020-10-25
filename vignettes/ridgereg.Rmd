@@ -1,6 +1,6 @@
 ---
 title: "ridgereg"
-author: shwetha ,suhani,Hoda
+author: "Group 10 : shwetha ,suhani,Hoda"
 output:
  rmarkdown::html_vignette:
     toc: true
