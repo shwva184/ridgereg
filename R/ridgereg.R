@@ -12,6 +12,8 @@
 #' 
 
 ridgereg = function(formula,data,lambda = 0){
+  stopifnot("This is not a formula" = class(formula)=="formula")
+  stopifnot("lambda is not numeric" = is.numeric(lambda))
   call=match.call()
   x = model.matrix(formula,data)
   value = all.vars(formula)[1]
@@ -66,6 +68,9 @@ ridgereg = function(formula,data,lambda = 0){
 print.ridgereg = function(x,...){
   if (!inherits(x, "ridgereg"))
     stop("This is not a \"ridgereg\" object.")
+  cat("Call:\n ")
+  print.default(as.vector(x$call))
+  cat("\n Coefficent is \n")
   print(coef(x))
 }
 
@@ -78,6 +83,7 @@ print.ridgereg = function(x,...){
 predict.ridgereg = function(object,...){
   if (!inherits(object, "ridgereg")){
     stop("This is not a \"ridgereg\" object.")}
+  
   return(as.vector(object$fitted_values))
 }
 
