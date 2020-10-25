@@ -3,9 +3,9 @@
 #' @param formula an object, that is symbolic description of the model to be fitted.
 #' @param data a data frame.
 #' @param lambda the lambda of the data set(hyperparameter). Default is 0.
-#'
+#' @importFrom stats model.matrix sd coef
 #' @return An object of class ridgereg
-#'
+#' 
 #' @example ridgereg(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 1)
 #'
 #' @export
@@ -14,34 +14,40 @@
 ridgereg = function(formula,data,lambda = 0){
   call=match.call()
   x = model.matrix(formula,data)
-  y=data[[all.vars(formula)[1]]]
-  
+  value = all.vars(formula)[1]
+  y = data[,value]
+  bo = mean(y)
+  scales = apply(x, 2, sd)[2:ncol(x)]
+  m = apply(x, 2, mean)[2:ncol(x)]
   #normalizing x
-  for(i in 2:ncol(x)){
-    x[,i] = ((x[,i]-mean(x[,i]))/ (sqrt(var((x[,i])))))
-  }
+ 
+  x = scale(x[,-1])
+  I = diag(ncol(x))
   
   #computation using least squares 
   
-  beta_r = solve(((t(x) %*% x) + (lambda * diag(ncol(x))))) %*% (t(x) %*% y)
-  y_hat = x %*% beta_r
+  #beta_r = solve(t(x) %*% x + lambda * I) %*% t(x) %*% y
+  #y_hat = x %*% beta_r + bo
   
   #computation using QR
-  y_qr = as.matrix(data[,all.vars(formula)[1]])
-  qr = qr(x)
+  p = ncol(x)
+  y_qr = rbind(as.matrix(data[all.vars(formula)[1]]),matrix(0,nrow = p,ncol = 1))
+  x_qr = rbind(x,diag(sqrt(lambda),nrow=ncol(x),ncol=ncol(x)))
+  qr = qr(x_qr)
   R = qr.R(qr)
-  I = diag(lambda, nrow = ncol(x))
-  beta_qr_ridge = solve(t(R) %*% R + I) %*% (t(x) %*% y_qr)
-  beta_qr_ridge = beta_qr_ridge[,1]
-  y_qr_hat = x %*% beta_qr_ridge
-  y_qr_hat = y_qr_hat[,1]
+  Q = qr.Q(qr)
+  beta_r = solve(R) %*% t(Q) %*% y_qr
+  y_hat = x %*% beta_r + bo
   
   result = list( call = call, 
                   lambda = lambda, 
                   coef = beta_r,
-                  coef_qr = beta_qr_ridge,
+                  #coef_qr = beta_rr,
                   fitted_values = y_hat,
-                  fitted_qr_values = y_qr_hat
+                  bo = bo,
+                 scales =scales,
+                 m = m
+                #fitted_qr_values = y_qr_hat
   )
   
   class(result) = "ridgereg"
@@ -60,24 +66,19 @@ ridgereg = function(formula,data,lambda = 0){
 print.ridgereg = function(x,...){
   if (!inherits(x, "ridgereg"))
     stop("This is not a \"ridgereg\" object.")
-  if(length(x$coef)){
-    cat("Call:\n ")
-    print.default(as.vector(x$call))
-    cat("\n Coefficent is \n")
-    print.default(t(x$coef))
-  } else {cat("Coefficient not available \n")}
+  print(coef(x))
 }
 
 #' This contains the fitted values of ridgereg function.
 #' 
-#' @param p An object of ridgereg class
+#' @param object An object of ridgereg class
 #' @param ... Further arguments passed to or from other methods
 #' @export
 
-pred.ridgereg = function(p,...){
-  if (!inherits(p, "ridgereg")){
+predict.ridgereg = function(object,...){
+  if (!inherits(object, "ridgereg")){
     stop("This is not a \"ridgereg\" object.")}
-  return(as.vector(p$fitted_values))
+  return(as.vector(object$fitted_values))
 }
 
 #' This contains the regression coefficents of ridgereg function.
@@ -87,10 +88,10 @@ pred.ridgereg = function(p,...){
 #' @param ... Further arguments passed to or from other methods
 #' @export
 
-coef.ridgereg = function(object, ...){
-  if (!inherits(object, "ridgereg"))
-    stop("This is not a \"ridgereg\" object.")
-  if(length(object$coef)){
-    print.default(t(object$coef))
-  } else {cat("Coefficient not available \n")}
+coef.ridgereg = function(object, ...)
+{
+  scaledcoef = t(as.matrix(object$coef / object$scales))
+  inter = object$bo - scaledcoef %*% object$m
+  scaledcoef = cbind(Intercept=inter, scaledcoef)
+  return(drop(scaledcoef))
 }
