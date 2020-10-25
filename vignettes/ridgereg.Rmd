@@ -1,7 +1,9 @@
 ---
 title: "ridgereg"
 author: shwetha ,suhani,Hoda
-output: rmarkdown::html_vignette
+output:
+ rmarkdown::html_vignette:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{ridgereg}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,7 +16,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-#To install the package
+# To install the package
 ```{r, eval=FALSE}
 devtools::install_github("shwva184/ridgereg")
 ```{r setup}
