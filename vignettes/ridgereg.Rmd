@@ -1,14 +1,9 @@
 ---
-<<<<<<< HEAD
-title: "A simple predictive problem"
-output: rmarkdown::html_vignette
-=======
 title: "ridgereg"
 author: "Group 10 : shwetha ,suhani,Hoda"
 output:
  rmarkdown::html_vignette:
     toc: true
->>>>>>> 0b380ee59d8b9e07c66be79669c9c7f89a98419c
 vignette: >
   %\VignetteIndexEntry{ridgereg}
   %\VignetteEngine{knitr::rmarkdown}
@@ -22,7 +17,6 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 ```
-<<<<<<< HEAD
 
 Loading the below required packages and data used for predictions. 
 
@@ -31,18 +25,6 @@ library(ridgereg)
 library(caret)
 library(leaps)
 Boston <- MASS::Boston
-=======
-# To install the package
-```{r, eval=FALSE}
-devtools::install_github("shwva184/ridgereg")
-```{r setup}
-require(ridgereg)
-require(mlbench)
-require(caret) 
-require(MASS)
-require(leaps)
-data("BostonHousing")
->>>>>>> 0b380ee59d8b9e07c66be79669c9c7f89a98419c
 ```
 
 ### Introduction
@@ -51,7 +33,7 @@ The vignette called ridgereg is created, where a simple prediction problem using
 
 ### 1. Divide the BostonHousing data into a test and training dataset 
  
-The BostonHousing data from mlbench package is divided into testing and training data sets. 80% of randomly selected data goes to training data set, and remaining 20% are used in the testing data set. The response variable crim(per capita crime rate by town) is analyzed.
+The BostonHousing data from mlbench package is divided into testing and training data sets. 75% of randomly selected data goes to training data set, and remaining 25% are used in the testing data set. The response variable crim(per capita crime rate by town) is analyzed.
 
 ```{r}
 set.seed(123)
