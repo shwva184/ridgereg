@@ -1,6 +1,14 @@
 ---
+<<<<<<< HEAD
 title: "A simple predictive problem"
 output: rmarkdown::html_vignette
+=======
+title: "ridgereg"
+author: "Group 10 : shwetha ,suhani,Hoda"
+output:
+ rmarkdown::html_vignette:
+    toc: true
+>>>>>>> 0b380ee59d8b9e07c66be79669c9c7f89a98419c
 vignette: >
   %\VignetteIndexEntry{ridgereg}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,6 +22,7 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 ```
+<<<<<<< HEAD
 
 Loading the below required packages and data used for predictions. 
 
@@ -22,6 +31,18 @@ library(ridgereg)
 library(caret)
 library(leaps)
 Boston <- MASS::Boston
+=======
+# To install the package
+```{r, eval=FALSE}
+devtools::install_github("shwva184/ridgereg")
+```{r setup}
+require(ridgereg)
+require(mlbench)
+require(caret) 
+require(MASS)
+require(leaps)
+data("BostonHousing")
+>>>>>>> 0b380ee59d8b9e07c66be79669c9c7f89a98419c
 ```
 
 ### Introduction
