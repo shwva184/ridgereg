@@ -6,12 +6,13 @@
 #' @importFrom stats model.matrix sd coef
 #' @return An object of class ridgereg
 #' 
-#' @example ridgereg(Petal.Length~Sepal.Width+Sepal.Length, data=iris, lambda = 1)
 #'
 #' @export
 #' 
 
 ridgereg = function(formula,data,lambda = 0){
+  stopifnot("This is not a formula" = class(formula)=="formula")
+  stopifnot("lambda is not numeric" = is.numeric(lambda))
   call=match.call()
   x = model.matrix(formula,data)
   value = all.vars(formula)[1]
@@ -20,7 +21,7 @@ ridgereg = function(formula,data,lambda = 0){
   scales = apply(x, 2, sd)[2:ncol(x)]
   m = apply(x, 2, mean)[2:ncol(x)]
   #normalizing x
- 
+  
   x = scale(x[,-1])
   I = diag(ncol(x))
   
@@ -30,9 +31,9 @@ ridgereg = function(formula,data,lambda = 0){
   #y_hat = x %*% beta_r + bo
   
   #computation using QR
-  p = ncol(x)
-  y_qr = rbind(as.matrix(data[all.vars(formula)[1]]),matrix(0,nrow = p,ncol = 1))
-  x_qr = rbind(x,diag(sqrt(lambda),nrow=ncol(x),ncol=ncol(x)))
+  l = ncol(x)
+  y_qr = rbind(as.matrix(data[all.vars(formula)[1]]),matrix(0,nrow = l,ncol = 1))
+  x_qr = rbind(x,diag(sqrt(lambda),nrow=l,ncol=l))
   qr = qr(x_qr)
   R = qr.R(qr)
   Q = qr.Q(qr)
@@ -40,14 +41,14 @@ ridgereg = function(formula,data,lambda = 0){
   y_hat = x %*% beta_r + bo
   
   result = list( call = call, 
-                  lambda = lambda, 
-                  coef = beta_r,
-                  #coef_qr = beta_rr,
-                  fitted_values = y_hat,
-                  bo = bo,
+                 lambda = lambda, 
+                 coefficients = beta_r,
+                 #coef_qr = beta_rr,
+                 fitted_values = y_hat,
+                 bo = bo,
                  scales =scales,
                  m = m
-                #fitted_qr_values = y_qr_hat
+                 #fitted_qr_values = y_qr_hat
   )
   
   class(result) = "ridgereg"
@@ -66,19 +67,33 @@ ridgereg = function(formula,data,lambda = 0){
 print.ridgereg = function(x,...){
   if (!inherits(x, "ridgereg"))
     stop("This is not a \"ridgereg\" object.")
+  cat("Call:\n ")
+  print.default(as.vector(x$call))
+  cat("\n Coefficent is \n")
   print(coef(x))
 }
 
 #' This contains the fitted values of ridgereg function.
 #' 
 #' @param object An object of ridgereg class
+#' @param newdata this is newdata
 #' @param ... Further arguments passed to or from other methods
 #' @export
 
-predict.ridgereg = function(object,...){
-  if (!inherits(object, "ridgereg")){
-    stop("This is not a \"ridgereg\" object.")}
-  return(as.vector(object$fitted_values))
+predict.ridgereg <- function(object, newdata = NULL, ...){
+  if(is.null(newdata)){
+    fitted_values <- drop(object$fitted_values)
+  } else {
+    if(all(unlist(lapply(newdata, is.numeric)))){
+      i <- which(colnames(newdata) %in% rownames(object$coefficients))
+      x <- scale(newdata[, i])
+      fitted_values <- x %*% object$coefficients + object$bo
+      
+    } else {
+      stop("All columns must be numeric!")
+    }
+  }
+  return(fitted_values)
 }
 
 #' This contains the regression coefficents of ridgereg function.
@@ -90,7 +105,7 @@ predict.ridgereg = function(object,...){
 
 coef.ridgereg = function(object, ...)
 {
-  scaledcoef = t(as.matrix(object$coef / object$scales))
+  scaledcoef = t(as.matrix(object$coefficients / object$scales))
   inter = object$bo - scaledcoef %*% object$m
   scaledcoef = cbind(Intercept=inter, scaledcoef)
   return(drop(scaledcoef))

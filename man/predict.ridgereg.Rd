@@ -4,10 +4,12 @@
 \alias{predict.ridgereg}
 \title{This contains the fitted values of ridgereg function.}
 \usage{
-\method{predict}{ridgereg}(object, ...)
+\method{predict}{ridgereg}(object, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{An object of ridgereg class}
+
+\item{newdata}{this is newdata}
 
 \item{...}{Further arguments passed to or from other methods}
 }

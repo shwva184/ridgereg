@@ -1,5 +1,5 @@
 ---
-title: "ridgereg"
+title: "A simple predictive problem"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{ridgereg}
@@ -10,17 +10,18 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE
 )
 ```
 
+Loading the below required packages and data used for predictions. 
+
 ```{r setup}
 library(ridgereg)
-library(mlbench)
-library(caret) 
-library(MASS)
+library(caret)
 library(leaps)
-data("BostonHousing")
+Boston <- MASS::Boston
 ```
 
 ### Introduction
@@ -32,28 +33,24 @@ The vignette called ridgereg is created, where a simple prediction problem using
 The BostonHousing data from mlbench package is divided into testing and training data sets. 80% of randomly selected data goes to training data set, and remaining 20% are used in the testing data set. The response variable crim(per capita crime rate by town) is analyzed.
 
 ```{r}
-set.seed(3456)
-inTrain = createDataPartition(y = Boston$crim, p = 0.8, list = FALSE)
+set.seed(123)
+inTrain <- createDataPartition(y = Boston$crim, p = 0.75, list = FALSE)
 
-training = Boston[inTrain, ]
-test = Boston[-inTrain, ]
+training <- Boston[inTrain, ]
+testing <- Boston[-inTrain, ]
 
-#For the 10-fold cross-validation
-train_ctrl = caret::trainControl(method = "repeatedcv",
-  number = 10, # k=10
-  repeats = 10) # repeat 10 times
+set.seed(123)
+train_ctrl <- trainControl(method = "repeatedcv", number = 10, p = 3/4)
 ```
 
 ### 2. Training the data using lm and leapforward
 
 ```{r}
-lm = train(crim ~ ., data = training, method = "lm", 
+lm <- train(crim ~ ., data = training, method = "lm", 
                 trControl = train_ctrl)
 print(lm)
-```
 
-```{r}
-lf = train(crim ~ ., data = training, method = "leapForward", 
+lf <- train(crim ~ ., data = training, method = "leapForward", 
                 trControl = train_ctrl)
 print(lf)
 ```
@@ -71,33 +68,63 @@ By looking at the metrics RMSE, Rsquared and MAE, we can see that the linear reg
 ### 4. Fit a ridge regression model
 
 ```{r}
-Ridgereg = list(
+Ridgereg <- list(
   type = "Regression",
-  library = "bonusLabRidge",
+  library = "ridgereg",
   loop = NULL, 
   prob = NULL,
   
   parameters = data.frame(parameter = "lambda", class = "numeric", label = "lambda"),
   grid = function(x, y, len = NULL, search = "grid") {
-        data.frame(lambda = c(0, 0.25, 0.50, 0.75, 1.0, 1.25, 1.50, 1.75, 2))
+      data.frame(lambda = seq(0,2,by=0.25))
   }, 
   
-  fit = function(x, y, wts, param, lev, last, classProbs, ...){
-    df = as.data.frame(x)
-    df$y = y
-    ridgereg(y ~ ., data = df, lambda = param$lambda)
+  fit = function(x, y, wts, param, lev, last, classProbs, ...) {
+    if(is.data.frame(x)){
+      df <- x
+    } else{
+      df <- as.data.frame(x)
+    }
+    df$y <- y
+    ridgereg(y ~ ., data = df, lambda = param$lambda, ...)
     },
   
   predict = function(modelFit, newdata, submodels = NULL) {
-    newdata <- as.data.frame(newdata)
-    predict(modelFit, newdata)                
+    if(!is.data.frame(newdata)){
+      newdata <- as.data.frame(newdata)
     }
+    predict(modelFit, newdata)                
+    }, 
+  
+  sort = function(x) x[order(-x$lambda),]
+  
 )
 ```
 
+### 5. Using 10-fold cross-validation on the training set
 
+```{r}
+set.seed(123)
+ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+ridgereg_fit <- caret::train(crim ~ ., data=training, method=Ridgereg, trControl=ctrl)
+ridgereg_fit
+```
+ 
 
+## Performance evaluation of 3 models
 
+```{r}
+# "Linear Regression Model"
+pred_lm <- predict(lm, testing)
+postResample(pred_lm, testing$crim)
 
+# "Linear Regression Model with forward selection"
+pred_step <- predict(lf, testing)
+postResample(pred_step, testing$crim)
 
+# "Ridgereg Model"
+pred_ridge <- predict(ridgereg_fit, testing)
+postResample(pred_ridge, testing$crim)
+```
 
+Ridgereg model has the lowest MAE values, hence it is a best fitting model to the data.
