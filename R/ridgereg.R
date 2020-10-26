@@ -80,7 +80,6 @@ print.ridgereg = function(x,...){
 #' @param ... Further arguments passed to or from other methods
 #' @export
 
-<<<<<<< HEAD
 predict.ridgereg <- function(object, newdata = NULL, ...){
   if(is.null(newdata)){
     fitted_values <- drop(object$fitted_values)
@@ -95,13 +94,6 @@ predict.ridgereg <- function(object, newdata = NULL, ...){
     }
   }
   return(fitted_values)
-=======
-predict.ridgereg = function(object,...){
-  if (!inherits(object, "ridgereg")){
-    stop("This is not a \"ridgereg\" object.")}
-  
-  return(as.vector(object$fitted_values))
->>>>>>> 0b380ee59d8b9e07c66be79669c9c7f89a98419c
 }
 
 #' This contains the regression coefficents of ridgereg function.
